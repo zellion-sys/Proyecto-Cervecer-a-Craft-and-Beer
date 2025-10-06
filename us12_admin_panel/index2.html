@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>US-12 - Gestión de Zonas de Despacho</title>
+    <style>
+        /* Estilos específicos de gestión de zonas */
+        :root {
+            --primary-color: #000000;
+            --secondary-color: #333333;
+            --background-color: #ffffff;
+            --surface-color: #f8f9fa;
+            --border-color: #e0e0e0;
+            --text-color: #000000;
+            --text-light: #666666;
+            --success-color: #000000;
+            --warning-color: #ff9800;
+            --error-color: #d32f2f;
+            --spacing-sm: 1rem;
+            --spacing-md: 1.5rem;
+            --spacing-lg: 2rem;
+            --border-radius: 4px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            padding: var(--spacing-md);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: var(--spacing-lg);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            font-size: 2rem;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .admin-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        @media (max-width: 768px) {
+            .admin-panel {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .zones-list {
+            background: var(--surface-color);
+            padding: var(--spacing-lg);
+            border-radius: var(--border-radius);
+        }
+
+        .zones-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .zone-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-sm);
+            transition: transform 0.3s;
+        }
+
+        .zone-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .zone-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .zone-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .zone-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #e8f5e8;
+            color: var(--success-color);
+        }
+
+        .status-inactive {
+            background: #ffebee;
+            color: var(--error-color);
+        }
+
+        .zone-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
+            font-size: 0.9rem;
+        }
+
+        .zone-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+            justify-content: flex-end;
+        }
+
+        .zone-form {
+            background: var(--surface-color);
+            padding: var(--spacing-lg);
+            border-radius: var(--border-radius);
+        }
+
+        .form-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .form-group {
+            margin-bottom: var(--spacing-md);
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: var(--spacing-sm);
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: var(--spacing-sm);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
+        }
+
+        .form-select {
+            width: 100%;
+            padding: var(--spacing-sm);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background: white;
+            font-size: 1rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-md);
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .btn {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: 2px solid var(--primary-color);
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background: transparent;
+            color: var(--primary-color);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+        }
+
+        .btn-danger {
+            background: var(--error-color);
+            border-color: var(--error-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: transparent;
+            color: var(--error-color);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-md);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .coverage-map {
+            background: #f0f0f0;
+            height: 300px;
+            border-radius: var(--border-radius);
+            margin-top: var(--spacing-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
+            border: 2px dashed var(--border-color);
+        }
+
+        .search-box {
+            margin-bottom: var(--spacing-md);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: var(--spacing-sm);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-xl);
+            color: var(--text-light);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--success-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🍺</div>
+            <h1 class="section-title">Gestión de Zonas de Despacho</h1>
+            <p>Administra las zonas de cobertura y costos de envío</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalZones">8</div>
+                <div class="stat-label">Zonas Activas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="coveredCommunes">24</div>
+                <div class="stat-label">Comunas Cubiertas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">85%</div>
+                <div class="stat-label">Cobertura RM</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="avgDelivery">1.5</div>
+                <div class="stat-label">Días Promedio Entrega</div>
+            </div>
+        </div>
+
+        <div class="admin-panel">
+            <div class="zones-list">
+                <div class="zones-header">
+                    <h3>Zonas de Despacho</h3>
+                    <button class="btn btn-secondary" onclick="showZoneForm()">
+                        + Nueva Zona
+                    </button>
+                </div>
+
+                <div class="search-box">
+                    <input type="text" class="search-input" placeholder="Buscar zonas..." onkeyup="filterZones(this.value)">
+                </div>
+
+                <div id="zonesContainer">
+                    <!-- Las zonas se cargan dinámicamente -->
+                </div>
+            </div>
+
+            <div class="zone-form">
+                <h3 class="form-title" id="formTitle">Agregar Nueva Zona</h3>
+                
+                <form id="zoneForm">
+                    <div class="form-group">
+                        <label for="zoneName">Nombre de la Zona</label>
+                        <input type="text" id="zoneName" class="form-input" placeholder="Ej: Santiago Centro" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="zoneCommunes">Comunas (separadas por coma)</label>
+                        <textarea id="zoneCommunes" class="form-input" placeholder="Ej: Santiago, Providencia, Ñuñoa" rows="3" required></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="deliveryCost">Costo de Despacho ($)</label>
+                            <input type="number" id="deliveryCost" class="form-input" placeholder="3000" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="deliveryTime">Tiempo de Entrega (días)</label>
+                            <input type="number" id="deliveryTime" class="form-input" placeholder="2" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="minOrder">Pedido Mínimo ($)</label>
+                            <input type="number" id="minOrder" class="form-input" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="freeShipping">Envío Gratis sobre ($)</label>
+                            <input type="number" id="freeShipping" class="form-input" placeholder="20000">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="zoneStatus">Estado de la Zona</label>
+                        <select id="zoneStatus" class="form-select">
+                            <option value="active">Activa</option>
+                            <option value="inactive">Inactiva</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="sameDayDelivery">
+                            Ofrecer entrega mismo día
+                        </label>
+                    </div>
+
+                    <button type="button" class="btn" id="submitBtn" onclick="saveZone()" style="width: 100%;">
+                        Guardar Zona
+                    </button>
+                    <button type="button" class="btn-secondary" id="cancelBtn" onclick="cancelEdit()" style="width: 100%; margin-top: 0.5rem; display: none;">
+                        Cancelar
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="coverage-map">
+            🗺️ Mapa de Cobertura de Zonas de Despacho
+        </div>
+    </div>
+
+    <script>
+        // Datos de ejemplo
+        let zones = JSON.parse(localStorage.getItem('deliveryZones')) || [
+            {
+                id: 1,
+                name: 'Santiago Centro',
+                communes: ['Santiago', 'Estación Central', 'Quinta Normal'],
+                cost: 2000,
+                time: 1,
+                minOrder: 0,
+                freeShipping: 15000,
+                status: 'active',
+                sameDay: true
+            },
+            {
+                id: 2,
+                name: 'Providencia - Ñuñoa',
+                communes: ['Providencia', 'Ñuñoa', 'Macul', 'San Joaquín'],
+                cost: 1500,
+                time: 1,
+                minOrder: 0,
+                freeShipping: 20000,
+                status: 'active',
+                sameDay: true
+            },
+            {
+                id: 3,
+                name: 'Las Condes - Vitacura',
+                communes: ['Las Condes', 'Vitacura', 'Lo Barnechea'],
+                cost: 2500,
+                time: 2,
+                minOrder: 0,
+                freeShipping: 25000,
+                status: 'active',
+                sameDay: false
+            },
+            {
+                id: 4,
+                name: 'Maipú - Cerrillos',
+                communes: ['Maipú', 'Cerrillos', 'Pudahuel'],
+                cost: 3000,
+                time: 2,
+                minOrder: 5000,
+                freeShipping: 0,
+                status: 'active',
+                sameDay: false
+            }
+        ];
+
+        let editingZone = null;
+
+        function loadZones() {
+            const container = document.getElementById('zonesContainer');
+            const totalZones = document.getElementById('totalZones');
+            const coveredCommunes = document.getElementById('coveredCommunes');
+            const avgDelivery = document.getElementById('avgDelivery');
+
+            if (zones.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No hay zonas configuradas</h3>
+                        <p>Crea tu primera zona de despacho para comenzar</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = zones.map(zone => `
+                <div class="zone-card" data-zone-name="${zone.name.toLowerCase()}">
+                    <div class="zone-header">
+                        <div class="zone-name">${zone.name}</div>
+                        <div class="zone-status status-${zone.status}">
+                            ${zone.status === 'active' ? 'ACTIVA' : 'INACTIVA'}
+                        </div>
+                    </div>
+                    
+                    <div class="zone-details">
+                        <div>
+                            <strong>Comunas:</strong> ${zone.communes.join(', ')}
+                        </div>
+                        <div>
+                            <strong>Costo:</strong> $${zone.cost.toLocaleString()}
+                        </div>
+                        <div>
+                            <strong>Tiempo:</strong> ${zone.time} día${zone.time > 1 ? 's' : ''}
+                        </div>
+                        <div>
+                            <strong>Envío gratis:</strong> ${zone.freeShipping > 0 ? `$${zone.freeShipping.toLocaleString()}+` : 'No'}
+                        </div>
+                    </div>
+
+                    <div class="zone-actions">
+                        <button class="btn-secondary btn-small" onclick="editZone(${zone.id})">
+                            ✏️ Editar
+                        </button>
+                        <button class="btn-secondary btn-small" onclick="toggleZone(${zone.id})">
+                            ${zone.status === 'active' ? '⏸️ Pausar' : '▶️ Activar'}
+                        </button>
+                        <button class="btn-danger btn-small" onclick="deleteZone(${zone.id})">
+                            🗑️ Eliminar
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            // Actualizar estadísticas
+            totalZones.textContent = zones.length;
+            const totalCommunes = zones.reduce((sum, zone) => sum + zone.communes.length, 0);
+            coveredCommunes.textContent = totalCommunes;
+            
+            const avgTime = zones.reduce((sum, zone) => sum + zone.time, 0) / zones.length;
+            avgDelivery.textContent = avgTime.toFixed(1);
+
+            // Guardar en localStorage
+            localStorage.setItem('deliveryZones', JSON.stringify(zones));
+        }
+
+        function filterZones(searchTerm) {
+            const zoneCards = document.querySelectorAll('.zone-card');
+            const term = searchTerm.toLowerCase();
+            
+            zoneCards.forEach(card => {
+                const zoneName = card.getAttribute('data-zone-name');
+                if (zoneName.includes(term)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function showZoneForm() {
+            editingZone = null;
+            document.getElementById('formTitle').textContent = 'Agregar Nueva Zona';
+            document.getElementById('zoneForm').reset();
+            document.getElementById('zoneStatus').value = 'active';
+            document.getElementById('cancelBtn').style.display = 'none';
+            document.getElementById('submitBtn').textContent = 'Guardar Zona';
+        }
+
+        function editZone(zoneId) {
+            const zone = zones.find(z => z.id === zoneId);
+            if (!zone) return;
+
+            editingZone = zone;
+            
+            document.getElementById('formTitle').textContent = 'Editar Zona';
+            document.getElementById('zoneName').value = zone.name;
+            document.getElementById('zoneCommunes').value = zone.communes.join(', ');
+            document.getElementById('deliveryCost').value = zone.cost;
+            document.getElementById('deliveryTime').value = zone.time;
+            document.getElementById('minOrder').value = zone.minOrder;
+            document.getElementById('freeShipping').value = zone.freeShipping;
+            document.getElementById('zoneStatus').value = zone.status;
+            document.getElementById('sameDayDelivery').checked = zone.sameDay;
+            
+            document.getElementById('cancelBtn').style.display = 'block';
+            document.getElementById('submitBtn').textContent = 'Actualizar Zona';
+        }
+
+        function saveZone() {
+            const name = document.getElementById('zoneName').value;
+            const communes = document.getElementById('zoneCommunes').value.split(',').map(c => c.trim()).filter(c => c);
+            const cost = parseInt(document.getElementById('deliveryCost').value);
+            const time = parseInt(document.getElementById('deliveryTime').value);
+            const minOrder = parseInt(document.getElementById('minOrder').value) || 0;
+            const freeShipping = parseInt(document.getElementById('freeShipping').value) || 0;
+            const status = document.getElementById('zoneStatus').value;
+            const sameDay = document.getElementById('sameDayDelivery').checked;
+
+            if (!name || communes.length === 0 || isNaN(cost) || isNaN(time)) {
+                alert('Por favor completa todos los campos requeridos');
+                return;
+            }
+
+            if (editingZone) {
+                // Actualizar zona existente
+                const index = zones.findIndex(z => z.id === editingZone.id);
+                zones[index] = {
+                    ...zones[index],
+                    name,
+                    communes,
+                    cost,
+                    time,
+                    minOrder,
+                    freeShipping,
+                    status,
+                    sameDay
+                };
+            } else {
+                // Crear nueva zona
+                const newZone = {
+                    id: Date.now(),
+                    name,
+                    communes,
+                    cost,
+                    time,
+                    minOrder,
+                    freeShipping,
+                    status,
+                    sameDay
+                };
+                zones.push(newZone);
+            }
+
+            loadZones();
+            showZoneForm();
+            alert(editingZone ? '✅ Zona actualizada correctamente' : '✅ Zona creada correctamente');
+        }
+
+        function cancelEdit() {
+            showZoneForm();
+        }
+
+        function toggleZone(zoneId) {
+            const zone = zones.find(z => z.id === zoneId);
+            if (zone) {
+                zone.status = zone.status === 'active' ? 'inactive' : 'active';
+                loadZones();
+                alert(`Zona ${zone.status === 'active' ? 'activada' : 'pausada'} correctamente`);
+            }
+        }
+
+        function deleteZone(zoneId) {
+            if (!confirm('¿Estás seguro de que quieres eliminar esta zona?')) {
+                return;
+            }
+
+            zones = zones.filter(z => z.id !== zoneId);
+            loadZones();
+            alert('✅ Zona eliminada correctamente');
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            loadZones();
+        });
+    </script>
+</body>
+</html>

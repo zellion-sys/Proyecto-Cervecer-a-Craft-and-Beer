@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>US-08 - Integración Webpay</title>
+    <style>
+        /* Estilos específicos de pagos */
+        :root {
+            --primary-color: #000000;
+            --secondary-color: #333333;
+            --background-color: #ffffff;
+            --surface-color: #f8f9fa;
+            --border-color: #e0e0e0;
+            --text-color: #000000;
+            --text-light: #666666;
+            --success-color: #000000;
+            --error-color: #d32f2f;
+            --warning-color: #ff9800;
+            --spacing-sm: 1rem;
+            --spacing-md: 1.5rem;
+            --spacing-lg: 2rem;
+            --border-radius: 4px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            padding: var(--spacing-md);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: var(--spacing-lg);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            font-size: 2rem;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .checkout-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-xl);
+            position: relative;
+            counter-reset: step;
+        }
+
+        .checkout-steps::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--border-color);
+            z-index: 1;
+        }
+
+        .step {
+            text-align: center;
+            position: relative;
+            z-index: 2;
+            background: var(--background-color);
+            padding: 0 var(--spacing-sm);
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--border-color);
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--spacing-xs);
+            font-weight: 600;
+            position: relative;
+        }
+
+        .step.active .step-number {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .step.completed .step-number {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .step.completed .step-number::after {
+            content: '✓';
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-lg);
+        }
+
+        @media (max-width: 768px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .order-summary {
+            background: var(--surface-color);
+            padding: var(--spacing-lg);
+            border-radius: var(--border-radius);
+        }
+
+        .summary-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .order-items {
+            margin-bottom: var(--spacing-md);
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-sm);
+            padding-bottom: var(--spacing-sm);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+        .summary-total {
+            border-top: 2px solid var(--border-color);
+            padding-top: var(--spacing-md);
+            margin-top: var(--spacing-md);
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .payment-section {
+            background: white;
+            padding: var(--spacing-lg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+        }
+
+        .form-group {
+            margin-bottom: var(--spacing-md);
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: var(--spacing-sm);
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: var(--spacing-sm);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
+        }
+
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .payment-method {
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-sm);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .payment-method:hover {
+            border-color: var(--primary-color);
+        }
+
+        .payment-method.selected {
+            border-color: var(--primary-color);
+            background: var(--surface-color);
+        }
+
+        .payment-icon {
+            font-size: 2rem;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .btn {
+            width: 100%;
+            padding: var(--spacing-sm) var(--spacing-lg);
+            border: 2px solid var(--primary-color);
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-block;
+            text-align: center;
+            margin-top: var(--spacing-md);
+        }
+
+        .btn:hover {
+            background: transparent;
+            color: var(--primary-color);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .security-badge {
+            text-align: center;
+            margin-top: var(--spacing-md);
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .webpay-simulation {
+            background: #f0f8ff;
+            border: 1px solid #b3d9ff;
+            border-radius: var(--border-radius);
+            padding: var(--spacing-lg);
+            margin-top: var(--spacing-lg);
+            display: none;
+        }
+
+        .webpay-header {
+            text-align: center;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .webpay-logo {
+            font-size: 2rem;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .loading {
+            text-align: center;
+            padding: var(--spacing-lg);
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto var(--spacing-md);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🍺</div>
+            <h1 class="section-title">Proceso de Pago</h1>
+            <p>Completa tu compra de forma segura</p>
+        </div>
+
+        <div class="checkout-steps">
+            <div class="step completed">
+                <div class="step-number">1</div>
+                <div>Carrito</div>
+            </div>
+            <div class="step completed">
+                <div class="step-number">2</div>
+                <div>Envío</div>
+            </div>
+            <div class="step active">
+                <div class="step-number">3</div>
+                <div>Pago</div>
+            </div>
+            <div class="step">
+                <div class="step-number">4</div>
+                <div>Confirmación</div>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="order-summary">
+                <h3 class="summary-title">Resumen del Pedido</h3>
+                
+                <div class="order-items" id="orderItems">
+                    <!-- Los items se cargan dinámicamente -->
+                </div>
+
+                <div class="summary-total">
+                    <div class="order-item">
+                        <span>Subtotal:</span>
+                        <span id="subtotal">$0</span>
+                    </div>
+                    <div class="order-item">
+                        <span>Envío:</span>
+                        <span id="shipping">$0</span>
+                    </div>
+                    <div class="total-row">
+                        <span>Total:</span>
+                        <span id="totalAmount">$0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="payment-section">
+                <h3 class="summary-title">Método de Pago</h3>
+                
+                <div class="payment-methods">
+                    <div class="payment-method selected" data-method="webpay" onclick="selectPaymentMethod('webpay')">
+                        <div class="payment-icon">💳</div>
+                        <div>Webpay</div>
+                    </div>
+                    <div class="payment-method" data-method="transferencia" onclick="selectPaymentMethod('transferencia')">
+                        <div class="payment-icon">🏦</div>
+                        <div>Transferencia</div>
+                    </div>
+                </div>
+
+                <form id="paymentForm">
+                    <div class="form-group">
+                        <label for="cardNumber">Número de Tarjeta</label>
+                        <input type="text" id="cardNumber" class="form-input" placeholder="1234 5678 9012 3456" maxlength="19" oninput="formatCardNumber(this)">
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md);">
+                        <div class="form-group">
+                            <label for="expiryDate">Fecha de Expiración</label>
+                            <input type="text" id="expiryDate" class="form-input" placeholder="MM/AA" maxlength="5" oninput="formatExpiryDate(this)">
+                        </div>
+                        <div class="form-group">
+                            <label for="cvv">CVV</label>
+                            <input type="text" id="cvv" class="form-input" placeholder="123" maxlength="3" oninput="formatCVV(this)">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cardName">Nombre en la Tarjeta</label>
+                        <input type="text" id="cardName" class="form-input" placeholder="JUAN PEREZ">
+                    </div>
+
+                    <button type="button" class="btn" id="payBtn" onclick="processPayment()">
+                        Pagar $<span id="payAmount">0</span>
+                    </button>
+                </form>
+
+                <div class="security-badge">
+                    🔒 Pago 100% seguro con encriptación SSL
+                </div>
+            </div>
+        </div>
+
+        <div class="webpay-simulation" id="webpaySimulation">
+            <div class="webpay-header">
+                <div class="webpay-logo">🏦</div>
+                <h3>Webpay Plus</h3>
+                <p>Procesando tu pago de forma segura...</p>
+            </div>
+
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Conectando con Transbank...</p>
+                <p><small>No cierres esta ventana</small></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datos de ejemplo
+        const order = {
+            items: [
+                { name: "IPA Artesanal", price: 5500, quantity: 2 },
+                { name: "Stout Imperial", price: 6200, quantity: 1 }
+            ],
+            subtotal: 17200,
+            shipping: 3000,
+            total: 20200
+        };
+
+        let selectedPaymentMethod = 'webpay';
+
+        function loadOrderSummary() {
+            const orderItems = document.getElementById('orderItems');
+            const subtotal = document.getElementById('subtotal');
+            const shipping = document.getElementById('shipping');
+            const totalAmount = document.getElementById('totalAmount');
+            const payAmount = document.getElementById('payAmount');
+
+            orderItems.innerHTML = order.items.map(item => `
+                <div class="order-item">
+                    <span>${item.name} x${item.quantity}</span>
+                    <span>$${(item.price * item.quantity).toLocaleString()}</span>
+                </div>
+            `).join('');
+
+            subtotal.textContent = `$${order.subtotal.toLocaleString()}`;
+            shipping.textContent = `$${order.shipping.toLocaleString()}`;
+            totalAmount.textContent = `$${order.total.toLocaleString()}`;
+            payAmount.textContent = order.total.toLocaleString();
+        }
+
+        function selectPaymentMethod(method) {
+            selectedPaymentMethod = method;
+            
+            // Actualizar UI
+            document.querySelectorAll('.payment-method').forEach(el => {
+                el.classList.remove('selected');
+            });
+            document.querySelector(`[data-method="${method}"]`).classList.add('selected');
+            
+            // Mostrar/ocultar campos según método
+            const cardFields = document.getElementById('paymentForm');
+            if (method === 'transferencia') {
+                cardFields.style.display = 'none';
+                document.getElementById('payBtn').textContent = 'Generar Datos de Transferencia';
+            } else {
+                cardFields.style.display = 'block';
+                document.getElementById('payBtn').textContent = `Pagar $${order.total.toLocaleString()}`;
+            }
+        }
+
+        function formatCardNumber(input) {
+            let value = input.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+            let matches = value.match(/\d{4,16}/g);
+            let match = matches && matches[0] || '';
+            let parts = [];
+            
+            for (let i = 0; i < match.length; i += 4) {
+                parts.push(match.substring(i, i + 4));
+            }
+            
+            if (parts.length) {
+                input.value = parts.join(' ');
+            } else {
+                input.value = value;
+            }
+        }
+
+        function formatExpiryDate(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                input.value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+        }
+
+        function formatCVV(input) {
+            input.value = input.value.replace(/\D/g, '').substring(0, 3);
+        }
+
+        function processPayment() {
+            if (selectedPaymentMethod === 'transferencia') {
+                processTransfer();
+                return;
+            }
+
+            // Validar campos de tarjeta
+            const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+            const expiryDate = document.getElementById('expiryDate').value;
+            const cvv = document.getElementById('cvv').value;
+            const cardName = document.getElementById('cardName').value;
+
+            if (!cardNumber || cardNumber.length !== 16) {
+                alert('Por favor ingresa un número de tarjeta válido (16 dígitos)');
+                return;
+            }
+
+            if (!expiryDate || expiryDate.length !== 5) {
+                alert('Por favor ingresa una fecha de expiración válida (MM/AA)');
+                return;
+            }
+
+            if (!cvv || cvv.length !== 3) {
+                alert('Por favor ingresa un CVV válido (3 dígitos)');
+                return;
+            }
+
+            if (!cardName) {
+                alert('Por favor ingresa el nombre que aparece en la tarjeta');
+                return;
+            }
+
+            // Simular Webpay
+            simulateWebpayPayment();
+        }
+
+        function simulateWebpayPayment() {
+            const payBtn = document.getElementById('payBtn');
+            const webpaySimulation = document.getElementById('webpaySimulation');
+            
+            // Deshabilitar botón y mostrar simulación Webpay
+            payBtn.disabled = true;
+            webpaySimulation.style.display = 'block';
+            
+            // Simular proceso de pago
+            setTimeout(() => {
+                // Simular autenticación bancaria
+                if (Math.random() > 0.2) { // 80% de éxito
+                    // Pago exitoso
+                    webpaySimulation.innerHTML = `
+                        <div class="webpay-header">
+                            <div class="webpay-logo" style="color: green;">✅</div>
+                            <h3>¡Pago Exitoso!</h3>
+                            <p>Tu transacción ha sido procesada correctamente</p>
+                        </div>
+                        <div style="text-align: center;">
+                            <p><strong>Orden #${Math.random().toString(36).substr(2, 9).toUpperCase()}</strong></p>
+                            <p>Monto: $${order.total.toLocaleString()}</p>
+                            <p>Fecha: ${new Date().toLocaleString()}</p>
+                            <button class="btn" onclick="completeOrder()" style="margin-top: 1rem;">
+                                Ver Boleta y Seguimiento
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    // Pago fallido
+                    webpaySimulation.innerHTML = `
+                        <div class="webpay-header">
+                            <div class="webpay-logo" style="color: red;">❌</div>
+                            <h3>Pago Rechazado</h3>
+                            <p>No pudimos procesar tu transacción</p>
+                        </div>
+                        <div style="text-align: center;">
+                            <p>Por favor verifica los datos de tu tarjeta o intenta con otro método de pago.</p>
+                            <button class="btn" onclick="retryPayment()" style="margin-top: 1rem;">
+                                Reintentar Pago
+                            </button>
+                        </div>
+                    `;
+                }
+            }, 3000);
+        }
+
+        function processTransfer() {
+            const transferData = {
+                bank: 'Banco Estado',
+                account: '1234567890',
+                type: 'Cuenta Corriente',
+                name: 'Cervecería Craft & Beer SpA',
+                rut: '76.123.456-7',
+                amount: order.total,
+                email: 'transferencias@craftbeer.cl'
+            };
+
+            alert(`💳 Datos para Transferencia:\n\n` +
+                  `Banco: ${transferData.bank}\n` +
+                  `Cuenta: ${transferData.account} (${transferData.type})\n` +
+                  `Titular: ${transferData.name}\n` +
+                  `RUT: ${transferData.rut}\n` +
+                  `Monto: $${transferData.amount.toLocaleString()}\n` +
+                  `Email: ${transferData.email}\n\n` +
+                  `Una vez realizada la transferencia, envía el comprobante al email indicado.`);
+        }
+
+        function completeOrder() {
+            alert('🎉 ¡Orden completada exitosamente!\n\nSerás redirigido a la página de seguimiento.');
+            // En un caso real: window.location.href = 'order-tracking.html';
+        }
+
+        function retryPayment() {
+            document.getElementById('webpaySimulation').style.display = 'none';
+            document.getElementById('payBtn').disabled = false;
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            loadOrderSummary();
+        });
+    </script>
+</body>
+</html>

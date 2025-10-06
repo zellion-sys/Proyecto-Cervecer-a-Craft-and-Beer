@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>US-09 - Generación de Boletas</title>
+    <style>
+        /* Estilos específicos de boletas */
+        :root {
+            --primary-color: #000000;
+            --secondary-color: #333333;
+            --background-color: #ffffff;
+            --surface-color: #f8f9fa;
+            --border-color: #e0e0e0;
+            --text-color: #000000;
+            --text-light: #666666;
+            --success-color: #000000;
+            --spacing-sm: 1rem;
+            --spacing-md: 1.5rem;
+            --spacing-lg: 2rem;
+            --border-radius: 4px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            padding: var(--spacing-md);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: var(--spacing-lg);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            font-size: 2rem;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .actions-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-lg);
+            padding: var(--spacing-md);
+            background: var(--surface-color);
+            border-radius: var(--border-radius);
+        }
+
+        .btn {
+            padding: var(--spacing-sm) var(--spacing-lg);
+            border: 2px solid var(--primary-color);
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background: transparent;
+            color: var(--primary-color);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .invoice-container {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-xl);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--spacing-lg);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .company-info h2 {
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .invoice-details {
+            text-align: right;
+        }
+
+        .invoice-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .invoice-meta {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .client-info {
+            margin-bottom: var(--spacing-lg);
+            padding: var(--spacing-md);
+            background: var(--surface-color);
+            border-radius: var(--border-radius);
+        }
+
+        .client-info h3 {
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .items-table th {
+            background: var(--surface-color);
+            padding: var(--spacing-sm);
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .items-table td {
+            padding: var(--spacing-sm);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .items-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .totals-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        @media (max-width: 768px) {
+            .totals-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .payment-method, .totals {
+            background: var(--surface-color);
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius);
+        }
+
+        .totals-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .totals-total {
+            font-weight: 700;
+            font-size: 1.2rem;
+            border-top: 2px solid var(--border-color);
+            padding-top: var(--spacing-sm);
+            margin-top: var(--spacing-sm);
+        }
+
+        .invoice-footer {
+            margin-top: var(--spacing-lg);
+            padding-top: var(--spacing-md);
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .legal-info {
+            margin-top: var(--spacing-md);
+            font-size: 0.8rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: var(--spacing-sm);
+        }
+
+        .status-paid {
+            background: #e8f5e8;
+            color: var(--success-color);
+        }
+
+        .status-pending {
+            background: #fff3e0;
+            color: #ff9800;
+        }
+
+        .invoice-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+            flex-wrap: wrap;
+        }
+
+        @media print {
+            .actions-bar {
+                display: none;
+            }
+            
+            .btn {
+                display: none;
+            }
+            
+            body {
+                padding: 0;
+            }
+            
+            .invoice-container {
+                border: none;
+                padding: 0;
+                box-shadow: none;
+            }
+        }
+
+        .invoice-history {
+            margin-top: var(--spacing-xl);
+        }
+
+        .history-title {
+            font-size: 1.5rem;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .history-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: var(--spacing-md);
+        }
+
+        .history-card {
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-md);
+            transition: transform 0.3s;
+        }
+
+        .history-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .history-amount {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🍺</div>
+            <h1 class="section-title">Sistema de Boletas Electrónicas</h1>
+            <p>Gestión y generación de documentos tributarios</p>
+        </div>
+
+        <div class="actions-bar">
+            <div>
+                <button class="btn" onclick="generateNewInvoice()">
+                    + Nueva Boleta
+                </button>
+            </div>
+            <div class="invoice-actions">
+                <button class="btn-secondary" onclick="printInvoice()">
+                    🖨️ Imprimir
+                </button>
+                <button class="btn-secondary" onclick="downloadPDF()">
+                    📄 Descargar PDF
+                </button>
+                <button class="btn-secondary" onclick="sendByEmail()">
+                    📧 Enviar por Email
+                </button>
+            </div>
+        </div>
+
+        <div class="invoice-container" id="invoiceContainer">
+            <div class="invoice-header">
+                <div class="company-info">
+                    <h2>Cervecería Craft & Beer SpA</h2>
+                    <p>Av. Siempre Viva 742, Santiago</p>
+                    <p>contacto@craftbeer.cl | +56 9 1234 5678</p>
+                    <p>RUT: 76.123.456-7</p>
+                    <p>Giro: Venta de cervezas artesanales</p>
+                </div>
+                <div class="invoice-details">
+                    <div class="invoice-number">Boleta Electrónica #B-001-23456</div>
+                    <div class="invoice-meta">
+                        <div>Fecha Emisión: <span id="issueDate">15/03/2024</span></div>
+                        <div>Fecha Vencimiento: <span id="dueDate">15/03/2024</span></div>
+                        <div>Estado: <span class="status-badge status-paid">PAGADA</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="client-info">
+                <h3>Información del Cliente</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md);">
+                    <div>
+                        <strong>Nombre:</strong> Juan Pérez González
+                    </div>
+                    <div>
+                        <strong>RUT:</strong> 12.345.678-9
+                    </div>
+                    <div>
+                        <strong>Email:</strong> juan.perez@email.com
+                    </div>
+                    <div>
+                        <strong>Teléfono:</strong> +56 9 8765 4321
+                    </div>
+                    <div>
+                        <strong>Dirección:</strong> Calle Falsa 123, Santiago
+                    </div>
+                    <div>
+                        <strong>Comuna:</strong> Providencia
+                    </div>
+                </div>
+            </div>
+
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th width="50%">Descripción</th>
+                        <th width="15%" class="text-center">Cantidad</th>
+                        <th width="15%" class="text-right">P. Unitario</th>
+                        <th width="20%" class="text-right">Total</th>
+                    </tr>
+                </thead>
+                <tbody id="invoiceItems">
+                    <!-- Los items se cargan dinámicamente -->
+                </tbody>
+            </table>
+
+            <div class="totals-section">
+                <div class="payment-method">
+                    <h3>Método de Pago</h3>
+                    <p><strong>Webpay Plus</strong></p>
+                    <p>Transacción: TBK-987654321</p>
+                    <p>Fecha Pago: 15/03/2024 14:30</p>
+                    <p>Autorización: A123456789</p>
+                </div>
+                <div class="totals">
+                    <h3>Resumen de Valores</h3>
+                    <div class="totals-row">
+                        <span>Subtotal:</span>
+                        <span id="invoiceSubtotal">$0</span>
+                    </div>
+                    <div class="totals-row">
+                        <span>Envío:</span>
+                        <span id="invoiceShipping">$0</span>
+                    </div>
+                    <div class="totals-row">
+                        <span>Descuento:</span>
+                        <span id="invoiceDiscount">$0</span>
+                    </div>
+                    <div class="totals-row totals-total">
+                        <span>TOTAL:</span>
+                        <span id="invoiceTotal">$0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="invoice-footer">
+                <p><strong>Información Tributaria</strong></p>
+                <p>Boleta Electrónica autorizada por SII mediante Resolución Exenta N° 12345</p>
+                <p>Timbre Electrónico SII: 1234567890123456789012345678901234567890</p>
+                <p>Verifique su boleta en: www.sii.cl</p>
+                
+                <div class="legal-info">
+                    <p>Cervecería Craft & Beer SpA - Todos los derechos reservados © 2024</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="invoice-history">
+            <h3 class="history-title">Historial de Boletas Recientes</h3>
+            <div class="history-grid" id="invoiceHistory">
+                <!-- El historial se carga dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datos de ejemplo
+        const currentInvoice = {
+            number: 'B-001-23456',
+            issueDate: '15/03/2024',
+            dueDate: '15/03/2024',
+            status: 'paid',
+            client: {
+                name: 'Juan Pérez González',
+                rut: '12.345.678-9',
+                email: 'juan.perez@email.com',
+                phone: '+56 9 8765 4321',
+                address: 'Calle Falsa 123, Santiago',
+                comuna: 'Providencia'
+            },
+            items: [
+                { description: 'IPA Artesanal - Cerveza IPA con aroma a lúpulo', quantity: 2, price: 5500 },
+                { description: 'Stout Imperial - Cerveza Stout con notas de café', quantity: 1, price: 6200 },
+                { description: 'Lager Premium - Cerveza Lager refrescante', quantity: 3, price: 4800 }
+            ],
+            subtotal: 0,
+            shipping: 3000,
+            discount: 0,
+            total: 0,
+            payment: {
+                method: 'Webpay Plus',
+                transaction: 'TBK-987654321',
+                date: '15/03/2024 14:30',
+                auth: 'A123456789'
+            }
+        };
+
+        // Historial de boletas
+        const invoiceHistory = [
+            { number: 'B-001-23455', date: '14/03/2024', amount: 18500, status: 'paid' },
+            { number: 'B-001-23454', date: '13/03/2024', amount: 12700, status: 'paid' },
+            { number: 'B-001-23453', date: '12/03/2024', amount: 8900, status: 'paid' },
+            { number: 'B-001-23452', date: '11/03/2024', amount: 21400, status: 'paid' }
+        ];
+
+        function calculateTotals() {
+            currentInvoice.subtotal = currentInvoice.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            currentInvoice.total = currentInvoice.subtotal + currentInvoice.shipping - currentInvoice.discount;
+        }
+
+        function loadInvoice() {
+            calculateTotals();
+            
+            // Cargar items
+            const itemsContainer = document.getElementById('invoiceItems');
+            itemsContainer.innerHTML = currentInvoice.items.map(item => `
+                <tr>
+                    <td>${item.description}</td>
+                    <td class="text-center">${item.quantity}</td>
+                    <td class="text-right">$${item.price.toLocaleString()}</td>
+                    <td class="text-right">$${(item.price * item.quantity).toLocaleString()}</td>
+                </tr>
+            `).join('');
+
+            // Cargar totales
+            document.getElementById('invoiceSubtotal').textContent = `$${currentInvoice.subtotal.toLocaleString()}`;
+            document.getElementById('invoiceShipping').textContent = `$${currentInvoice.shipping.toLocaleString()}`;
+            document.getElementById('invoiceDiscount').textContent = `$${currentInvoice.discount.toLocaleString()}`;
+            document.getElementById('invoiceTotal').textContent = `$${currentInvoice.total.toLocaleString()}`;
+
+            // Cargar fechas
+            document.getElementById('issueDate').textContent = currentInvoice.issueDate;
+            document.getElementById('dueDate').textContent = currentInvoice.dueDate;
+
+            // Cargar historial
+            const historyContainer = document.getElementById('invoiceHistory');
+            historyContainer.innerHTML = invoiceHistory.map(invoice => `
+                <div class="history-card">
+                    <div class="history-header">
+                        <strong>${invoice.number}</strong>
+                        <span class="history-amount">$${invoice.amount.toLocaleString()}</span>
+                    </div>
+                    <div style="color: var(--text-light); margin-bottom: 0.5rem;">${invoice.date}</div>
+                    <div>
+                        <span class="status-badge status-paid">PAGADA</span>
+                        <button class="btn-secondary" onclick="viewInvoice('${invoice.number}')" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-left: 0.5rem;">
+                            Ver
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function generateNewInvoice() {
+            const newNumber = `B-001-${Math.floor(23457 + Math.random() * 100)}`;
+            
+            alert(`🆕 Generando nueva boleta: ${newNumber}\n\nSerás redirigido al formulario de creación.`);
+            // En un caso real: window.location.href = 'create-invoice.html';
+        }
+
+        function printInvoice() {
+            window.print();
+        }
+
+        function downloadPDF() {
+            alert('📄 Generando PDF...\n\nTu boleta se descargará automáticamente.');
+            
+            // Simular descarga
+            setTimeout(() => {
+                alert('✅ PDF descargado correctamente: Boleta_B-001-23456.pdf');
+            }, 1500);
+        }
+
+        function sendByEmail() {
+            const email = prompt('Ingresa el email donde enviar la boleta:', currentInvoice.client.email);
+            
+            if (email) {
+                alert(`📧 Boleta enviada a: ${email}\n\nEl cliente recibirá la boleta en su correo electrónico.`);
+            }
+        }
+
+        function viewInvoice(invoiceNumber) {
+            alert(`🔍 Viendo boleta: ${invoiceNumber}\n\nCargando detalles de la boleta seleccionada...`);
+            // En un caso real: window.location.href = `invoice.html?number=${invoiceNumber}`;
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            loadInvoice();
+        });
+    </script>
+</body>
+</html>

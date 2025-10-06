@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>US-01 - Catálogo de Productos</title>
+    <style>
+        /* Estilos específicos del catálogo */
+        :root {
+            --primary-color: #000000;
+            --secondary-color: #333333;
+            --background-color: #ffffff;
+            --surface-color: #f8f9fa;
+            --border-color: #e0e0e0;
+            --text-color: #000000;
+            --text-light: #666666;
+            --spacing-sm: 1rem;
+            --spacing-md: 1.5rem;
+            --spacing-lg: 2rem;
+            --border-radius: 4px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            padding: var(--spacing-md);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-lg);
+            text-align: center;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .product-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+
+        .product-content {
+            padding: var(--spacing-md);
+        }
+
+        .product-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .product-type {
+            display: inline-block;
+            background: var(--surface-color);
+            color: var(--text-light);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .product-description {
+            color: var(--text-light);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .product-price {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin: var(--spacing-sm) 0;
+            color: #000;
+        }
+
+        .btn {
+            padding: var(--spacing-sm) var(--spacing-lg);
+            border: 2px solid var(--primary-color);
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background: transparent;
+            color: var(--primary-color);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-lg);
+        }
+
+        .pagination-btn {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: 1px solid var(--border-color);
+            background: white;
+            cursor: pointer;
+            border-radius: var(--border-radius);
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: var(--surface-color);
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .page-info {
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="section-title">Catálogo de Cervezas Artesanales</h1>
+        
+        <div class="products-grid" id="productsGrid">
+            <!-- Los productos se cargan dinámicamente -->
+        </div>
+        
+        <div class="pagination">
+            <button class="pagination-btn" onclick="changePage(-1)">← Anterior</button>
+            <span class="page-info">Página <span id="currentPage">1</span> de <span id="totalPages">1</span></span>
+            <button class="pagination-btn" onclick="changePage(1)">Siguiente →</button>
+        </div>
+    </div>
+
+    <script>
+        // Datos de productos
+        const products = [
+            {
+                id: 1,
+                name: "IPA Artesanal",
+                type: "IPA",
+                price: 5500,
+                description: "Cerveza IPA con intenso aroma a lúpulo y notas cítricas. Elaborada con maltas premium y lúpulos americanos.",
+                alcohol: 6.5
+            },
+            {
+                id: 2,
+                name: "Stout Imperial",
+                type: "Stout",
+                price: 6200,
+                description: "Stout robusta con notas de café tostado, chocolate negro y un final cremoso. Alta graduación alcohólica.",
+                alcohol: 8.2
+            },
+            {
+                id: 3,
+                name: "Lager Premium",
+                type: "Lager",
+                price: 4800,
+                description: "Lager suave y refrescante, perfecta para cualquier ocasión. Fermentación baja y sabor limpio.",
+                alcohol: 5.0
+            },
+            {
+                id: 4,
+                name: "Porter Achocolatada",
+                type: "Porter",
+                price: 5800,
+                description: "Porter con fuertes notas de chocolate amargo y café. Cuerpo medio y final sedoso.",
+                alcohol: 6.8
+            },
+            {
+                id: 5,
+                name: "Wheat Beer",
+                type: "Wheat",
+                price: 5200,
+                description: "Cerveza de trigo con notas cítricas y especiadas. Refrescante con un característico turbio.",
+                alcohol: 5.2
+            },
+            {
+                id: 6,
+                name: "Pale Ale",
+                type: "Pale Ale",
+                price: 5100,
+                description: "Pale Ale equilibrada con aroma a lúpulo y maltas caramelizadas. Amargor medio y sabor complejo.",
+                alcohol: 5.5
+            }
+        ];
+
+        let currentPage = 1;
+        const productsPerPage = 3;
+
+        function loadProducts() {
+            const grid = document.getElementById('productsGrid');
+            const start = (currentPage - 1) * productsPerPage;
+            const end = start + productsPerPage;
+            const paginatedProducts = products.slice(start, end);
+
+            grid.innerHTML = paginatedProducts.map(product => `
+                <div class="product-card">
+                    <div class="product-image">🍺</div>
+                    <div class="product-content">
+                        <h3 class="product-title">${product.name}</h3>
+                        <span class="product-type">${product.type} • ${product.alcohol}% alcohol</span>
+                        <p class="product-description">${product.description}</p>
+                        <div class="product-price">$${product.price.toLocaleString()} CLP</div>
+                        <button class="btn" onclick="addToCart(${product.id})">
+                            Añadir al Carrito
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            updatePagination();
+        }
+
+        function updatePagination() {
+            const totalPages = Math.ceil(products.length / productsPerPage);
+            document.getElementById('currentPage').textContent = currentPage;
+            document.getElementById('totalPages').textContent = totalPages;
+            
+            document.querySelector('.pagination-btn:first-child').disabled = currentPage === 1;
+            document.querySelector('.pagination-btn:last-child').disabled = currentPage === totalPages;
+        }
+
+        function changePage(direction) {
+            const totalPages = Math.ceil(products.length / productsPerPage);
+            currentPage += direction;
+            
+            if (currentPage < 1) currentPage = 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+            
+            loadProducts();
+        }
+
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            alert(`✅ ${product.name} añadido al carrito!`);
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProducts();
+        });
+    </script>
+</body>
+</html>

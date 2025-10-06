@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>US-14 - Monitoreo del Sistema</title>
+    <style>
+        /* Estilos específicos de monitoreo */
+        :root {
+            --primary-color: #000000;
+            --secondary-color: #333333;
+            --background-color: #ffffff;
+            --surface-color: #f8f9fa;
+            --border-color: #e0e0e0;
+            --text-color: #000000;
+            --text-light: #666666;
+            --success-color: #000000;
+            --warning-color: #ff9800;
+            --error-color: #d32f2f;
+            --spacing-sm: 1rem;
+            --spacing-md: 1.5rem;
+            --spacing-lg: 2rem;
+            --border-radius: 4px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            padding: var(--spacing-md);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: var(--spacing-lg);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            font-size: 2rem;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .system-status {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .status-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-lg);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .status-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .status-icon {
+            font-size: 3rem;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .status-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .status-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .status-good {
+            color: var(--success-color);
+        }
+
+        .status-warning {
+            color: var(--warning-color);
+        }
+
+        .status-critical {
+            color: var(--error-color);
+        }
+
+        .status-trend {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        @media (max-width: 768px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .charts-section {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-lg);
+        }
+
+        .alerts-section {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-lg);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .chart-container {
+            height: 200px;
+            background: var(--surface-color);
+            border-radius: var(--border-radius);
+            margin-bottom: var(--spacing-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, var(--surface-color) 0%, white 100%);
+        }
+
+        .chart-bar {
+            position: absolute;
+            bottom: 0;
+            background: var(--primary-color);
+            width: 20px;
+            transition: height 0.3s ease;
+        }
+
+        .chart-labels {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 var(--spacing-sm);
+            color: var(--text-light);
+            font-size: 0.8rem;
+        }
+
+        .alert-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .alert-item {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm);
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.3s;
+        }
+
+        .alert-item:hover {
+            background: var(--surface-color);
+        }
+
+        .alert-item:last-child {
+            border-bottom: none;
+        }
+
+        .alert-icon {
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .alert-critical .alert-icon {
+            color: var(--error-color);
+        }
+
+        .alert-warning .alert-icon {
+            color: var(--warning-color);
+        }
+
+        .alert-info .alert-icon {
+            color: var(--success-color);
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .alert-description {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .alert-time {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .service-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-md);
+            transition: transform 0.3s;
+        }
+
+        .service-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .service-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .service-name {
+            font-weight: 600;
+        }
+
+        .service-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-up {
+            background: #e8f5e8;
+            color: var(--success-color);
+        }
+
+        .status-down {
+            background: #ffebee;
+            color: var(--error-color);
+        }
+
+        .status-degraded {
+            background: #fff3e0;
+            color: var(--warning-color);
+        }
+
+        .service-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-sm);
+            font-size: 0.9rem;
+        }
+
+        .metric-item {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .metric-value {
+            font-weight: 600;
+        }
+
+        .btn {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: 2px solid var(--primary-color);
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background: transparent;
+            color: var(--primary-color);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .control-panel {
+            background: var(--surface-color);
+            padding: var(--spacing-lg);
+            border-radius: var(--border-radius);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: var(--spacing-sm);
+            flex-wrap: wrap;
+        }
+
+        .uptime-stats {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-lg);
+        }
+
+        .uptime-bar {
+            height: 20px;
+            background: var(--surface-color);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: var(--spacing-sm) 0;
+            position: relative;
+        }
+
+        .uptime-fill {
+            height: 100%;
+            background: var(--success-color);
+            transition: width 0.3s ease;
+        }
+
+        .performance-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-lg);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">📊</div>
+            <h1 class="section-title">Monitoreo del Sistema</h1>
+            <p>Seguimiento en tiempo real del rendimiento y disponibilidad</p>
+        </div>
+
+        <div class="system-status">
+            <div class="status-card">
+                <div class="status-icon">⚡</div>
+                <div class="status-title">CPU Usage</div>
+                <div class="status-value status-good" id="cpuUsage">45%</div>
+                <div class="status-trend">↓ 5% desde hace 1 hora</div>
+            </div>
+            <div class="status-card">
+                <div class="status-icon">💾</div>
+                <div class="status-title">Memory Usage</div>
+                <div class="status-value status-warning" id="memoryUsage">78%</div>
+                <div class="status-trend">↑ 8% desde hace 1 hora</div>
+            </div>
+            <div class="status-card">
+                <div class="status-icon">💽</div>
+                <div class="status-title">Disk Usage</div>
+                <div class="status-value status-good" id="diskUsage">62%</div>
+                <div class="status-trend">→ Estable</div>
+            </div>
+            <div class="status-card">
+                <div class="status-icon">🌐</div>
+                <div class="status-title">Network I/O</div>
+                <div class="status-value status-good" id="networkUsage">125 MB/s</div>
+                <div class="status-trend">↑ Pico de tráfico</div>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <div class="section-header">
+                <h3>Controles del Sistema</h3>
+                <div class="control-buttons">
+                    <button class="btn-secondary" onclick="refreshMetrics()">
+                        🔄 Actualizar Métricas
+                    </button>
+                    <button class="btn-secondary" onclick="clearAlerts()">
+                        🧹 Limpiar Alertas
+                    </button>
+                    <button class="btn" onclick="runHealthCheck()">
+                        🏥 Ejecutar Health Check
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="charts-section">
+                <div class="section-header">
+                    <h3>Métricas en Tiempo Real</h3>
+                    <span style="color: var(--text-light); font-size: 0.9rem;">Últimas 24 horas</span>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart" id="cpuChart">
+                        <!-- Gráfico de CPU se genera dinámicamente -->
+                    </div>
+                </div>
+                <div class="chart-labels">
+                    <span>00:00</span>
+                    <span>06:00</span>
+                    <span>12:00</span>
+                    <span>18:00</span>
+                    <span>23:59</span>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart" id="memoryChart">
+                        <!-- Gráfico de memoria se genera dinámicamente -->
+                    </div>
+                </div>
+                <div class="chart-labels">
+                    <span>00:00</span>
+                    <span>06:00</span>
+                    <span>12:00</span>
+                    <span>18:00</span>
+                    <span>23:59</span>
+                </div>
+            </div>
+
+            <div class="alerts-section">
+                <div class="section-header">
+                    <h3>Alertas del Sistema</h3>
+                    <span class="status-critical" id="alertCount">3 activas</span>
+                </div>
+
+                <div class="alert-list" id="alertList">
+                    <!-- Las alertas se cargan dinámicamente -->
+                </div>
+            </div>
+        </div>
+
+        <div class="services-grid">
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-name">API Gateway</div>
+                    <div class="service-status status-up">UP</div>
+                </div>
+                <div class="service-metrics">
+                    <div class="metric-item">
+                        <span>Respuesta:</span>
+                        <span class="metric-value">45ms</span>
+                    </div>
+                    <div class="metric-item">
+                        <span>Requests:</span>
+                        <span class="metric-value">1.2k/min</span>
+                    </div>
+                    <div class="metric-item">
+                        <span>Errores:</span>
+                        <span class="metric-value">0.2%</span>
+                    </div>
+                    <div class="metric-item">
+                        <span>Uptime:</span>
+                        <span class="metric-value">99.98%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-name">Database</div>
+                    <div class="service-status status-up">UP</div>
+                </div>
+                <div class="service-metrics">
+                    <div class="metric-item">
+                        <span>Conexiones:</span>
+                        <span class="metric-value">45/100</span>
+                    </div>
+                    <div class="metric-item">
+                        <span>Queries:</span>
+                        <span class="metric-value">850/min</span>
+                    </div>
+                    <div class="metric-item">
+                        <span>Cache Hit:</span>
+                        <span class="metric-value">94%</span>
+                    </div>
+                    <div class="metric-item">
+                        <span>Uptime:</span>
+                        <span class="metric-value">100%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-name">Payment Service</div>
+                    <div class="service-status status-degraded">DEGRADADO</div>
+                </div>
+                <div class="service-metrics">
+                    <div class="metric-item">
+                        <span>Respuesta:</span>
+                        <span class="metric-value">320ms</span>
+                    </div>
+                    <div class="metric-item">
+                        <span>Transacciones:</span>
+                        <span class="metric-value">45/min</span>
+                    </div>
+                    <div class="metric-item">
+                        <span>Fallos:</span>
+                        <span class="metric-value">2.1%</span>
+                    </div>
+                    <div class="metric-item">
+                        <span>Uptime:</span>
+                        <span class="metric-value">99.85%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="service-card">
+                <div class="service-header">
+                    <div class="service-name">Cache Service</div>
+                    <div class="service-status status-up">UP</div>
+                </div>
+                <div class="service-metrics">
+                    <div class="metric-item">
+                        <span>Hit Rate:</span>
+                        <span class="metric-value">88%</span>
+                    </div>
+                    <div class="metric-item">
+                        <span>Memoria:</span>
+                        <span class="metric-value">1.2GB/2GB</span>
+                    </div>
+                    <div class="metric-item">
+                        <span>Ops/sec:</span>
+                        <span class="metric-value">12k</span>
+                    </div>
+                    <div class="metric-item">
+                        <span>Uptime:</span>
+                        <span class="metric-value">99.99%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="uptime-stats">
+            <h3>Estadísticas de Uptime</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-lg);">
+                <div>
+                    <div class="metric-item">
+                        <span>Uptime Actual:</span>
+                        <span class="metric-value">99.98%</span>
+                    </div>
+                    <div class="uptime-bar">
+                        <div class="uptime-fill" style="width: 99.98%;"></div>
+                    </div>
+                    
+                    <div class="metric-item">
+                        <span>Este Mes:</span>
+                        <span class="metric-value">100%</span>
+                    </div>
+                    <div class="uptime-bar">
+                        <div class="uptime-fill" style="width: 100%;"></div>
+                    </div>
+                </div>
+                
+                <div class="performance-metrics">
+                    <div class="metric-item">
+                        <span>Response Time Avg:</span>
+                        <span class="metric-value">125ms</span>
+                    </div>
+                    <div class="metric-item">
+                        <span>Error Rate:</span>
+                        <span class="metric-value">0.05%</span>
+                    </div>
+                    <div class="metric-item">
+                        <span>Active Users:</span>
+                        <span class="metric-value">1,247</span>
+                    </div>
+                    <div class="metric-item">
+                        <span>Throughput:</span>
+                        <span class="metric-value">2.1 MB/s</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datos de ejemplo para alertas
+        const alerts = [
+            {
+                id: 1,
+                type: 'critical',
+                title: 'High Memory Usage',
+                description: 'Memory usage has exceeded 85% for more than 5 minutes',
+                time: 'Hace 15 minutos',
+                icon: '🚨'
+            },
+            {
+                id: 2,
+                type: 'warning',
+                title: 'Database Connection Spike',
+                description: 'Unusual number of database connections detected',
+                time: 'Hace 2 horas',
+                icon: '⚠️'
+            },
+            {
+                id: 3,
+                type: 'info',
+                title: 'Scheduled Maintenance',
+                description: 'Planned maintenance window starting at 02:00 AM',
+                time: 'Hace 4 horas',
+                icon: 'ℹ️'
+            }
+        ];
+
+        function loadAlerts() {
+            const alertList = document.getElementById('alertList');
+            const alertCount = document.getElementById('alertCount');
+            
+            alertList.innerHTML = alerts.map(alert => `
+                <div class="alert-item alert-${alert.type}">
+                    <div class="alert-icon">${alert.icon}</div>
+                    <div class="alert-content">
+                        <div class="alert-title">${alert.title}</div>
+                        <div class="alert-description">${alert.description}</div>
+                        <div class="alert-time">${alert.time}</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            alertCount.textContent = `${alerts.length} activas`;
+        }
+
+        function generateChart(containerId, data) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            const maxValue = Math.max(...data);
+            const barWidth = (100 / data.length) - 2;
+            
+            data.forEach((value, index) => {
+                const bar = document.createElement('div');
+                bar.className = 'chart-bar';
+                bar.style.height = `${(value / maxValue) * 100}%`;
+                bar.style.left = `${index * (100 / data.length)}%`;
+                bar.style.width = `${barWidth}%`;
+                
+                // Color basado en el valor
+                if (value > 80) {
+                    bar.style.background = 'var(--error-color)';
+                } else if (value > 60) {
+                    bar.style.background = 'var(--warning-color)';
+                } else {
+                    bar.style.background = 'var(--success-color)';
+                }
+                
+                container.appendChild(bar);
+            });
+        }
+
+        function updateMetrics() {
+            // Simular datos en tiempo real
+            const cpuData = Array.from({length: 24}, () => Math.floor(Math.random() * 100));
+            const memoryData = Array.from({length: 24}, () => Math.floor(Math.random() * 100));
+            
+            generateChart('cpuChart', cpuData);
+            generateChart('memoryChart', memoryData);
+            
+            // Actualizar métricas principales
+            document.getElementById('cpuUsage').textContent = `${cpuData[cpuData.length - 1]}%`;
+            document.getElementById('memoryUsage').textContent = `${memoryData[memoryData.length - 1]}%`;
+            document.getElementById('diskUsage').textContent = `${Math.floor(Math.random() * 30) + 50}%`;
+            document.getElementById('networkUsage').textContent = `${Math.floor(Math.random() * 100) + 50} MB/s`;
+            
+            // Actualizar colores basados en valores
+            updateStatusColors();
+        }
+
+        function updateStatusColors() {
+            const cpuValue = parseInt(document.getElementById('cpuUsage').textContent);
+            const memoryValue = parseInt(document.getElementById('memoryUsage').textContent);
+            
+            document.getElementById('cpuUsage').className = `status-value ${
+                cpuValue > 80 ? 'status-critical' : cpuValue > 60 ? 'status-warning' : 'status-good'
+            }`;
+            
+            document.getElementById('memoryUsage').className = `status-value ${
+                memoryValue > 80 ? 'status-critical' : memoryValue > 60 ? 'status-warning' : 'status-good'
+            }`;
+        }
+
+        function refreshMetrics() {
+            alert('🔄 Actualizando métricas...');
+            updateMetrics();
+        }
+
+        function clearAlerts() {
+            if (alerts.length > 0 && confirm('¿Estás seguro de que quieres limpiar todas las alertas?')) {
+                alerts.length = 0;
+                loadAlerts();
+                alert('✅ Alertas limpiadas correctamente');
+            }
+        }
+
+        function runHealthCheck() {
+            alert('🏥 Ejecutando health check completo del sistema...');
+            
+            // Simular health check
+            setTimeout(() => {
+                alert('✅ Health check completado. Todos los sistemas funcionan correctamente.');
+            }, 2000);
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAlerts();
+            updateMetrics();
+            
+            // Actualizar métricas cada 10 segundos
+            setInterval(updateMetrics, 10000);
+        });
+    </script>
+</body>
+</html>
